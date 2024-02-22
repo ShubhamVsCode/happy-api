@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ORG_ADMIN
+  SUPER_ADMIN
+}
+
+model User {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  email          String        @unique
+  verified       DateTime?
+  password       String?
+  role           UserRole      @default(USER)
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?       @db.ObjectId
+  Request        Request[]
+  Collection     Collection[]
+}
+
+model Organization {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  User        User[]
+  Collection  Collection[]
+}
+
+model Collection {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  name           String        @default("New Collection")
+  description    String?
+  folders        Folder[]
+  requests       Request[]
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?       @db.ObjectId
+
+  createdById String? @db.ObjectId
+  createdBy   User?   @relation(fields: [createdById], references: [id])
+}
+
+model Folder {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  name         String     @default("New Folder")
+  description  String?
+  collectionId String     @db.ObjectId
+  collection   Collection @relation(fields: [collectionId], references: [id])
+  requests     Request[]
+}
+
+enum RequestMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+}
+
+model Request {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  name        String        @default("New Request")
+  notes       String?
+  method      RequestMethod @default(GET)
+  url         String        @default("")
+  headers     Json?
+  body        Json?
+  params      Json?
+  response    Json?
+  error       Json?
+  status      Int?
+  duration    Int?
+  createdAt   DateTime      @default(now())
+  createdById String?       @db.ObjectId
+  createdBy   User?         @relation(fields: [createdById], references: [id])
+  updatedAt   DateTime      @updatedAt
+
+  folderId     String?    @db.ObjectId
+  folder       Folder?    @relation(fields: [folderId], references: [id])
+  collectionId String     @db.ObjectId
+  collection   Collection @relation(fields: [collectionId], references: [id])
+}
