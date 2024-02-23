@@ -1,14 +1,7 @@
 import React from "react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
-
-export enum Method {
-  GET = "GET",
-  POST = "POST",
-  PUT = "PUT",
-  PATCH = "PATCH",
-  DELETE = "DEL",
-}
+import { RequestMethod as Method } from "@prisma/client";
 
 interface RequestButtonProps {
   name: string;
@@ -42,7 +35,7 @@ const RequestButton = (props: RequestButtonProps) => {
         className={cn(
           "text-[10px] rounded-sm w-10 text-center p-[2px]",
           methodColors[props.method],
-          methodBgColors[props.method]
+          methodBgColors[props.method],
         )}
       >
         {props.method}

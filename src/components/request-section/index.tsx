@@ -5,7 +5,6 @@ import { githubDark } from "@uiw/codemirror-theme-github";
 
 import { json } from "@codemirror/lang-json";
 import { ChangeEvent, FormEvent, useState } from "react";
-import { Method } from "@/components/sidebar/request-button";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,13 +15,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RequestMethod as Method } from "@prisma/client";
 
 import axios from "axios";
 
 const RequestSection = () => {
   const [BASE_URL] = useState("https://jsonplaceholder.typicode.com");
 
-  const [method, setMethod] = useState(Method.GET);
+  const [method, setMethod] = useState<Method>(Method.GET);
   const [url, setUrl] = useState("/");
   const [requestBody, setRequestBody] = useState({
     name: "",
@@ -33,7 +33,7 @@ const RequestSection = () => {
   async function handleRequest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    console.log({ method, url, requestBody });
+    // console.log({ method, url, requestBody });
 
     // fetch(`${BASE_URL}${url}`, {
     //   method,
@@ -71,8 +71,8 @@ const RequestSection = () => {
     }
   }
 
-  function handleMethodChange(value: string): void {
-    setMethod(value as Method);
+  function handleMethodChange(value: Method): void {
+    setMethod(value);
   }
 
   function handleBaseUrlChange(value: string): void {

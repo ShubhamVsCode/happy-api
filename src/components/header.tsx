@@ -8,27 +8,56 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MenuIcon } from "lucide-react";
+import { MenuIcon, SearchIcon } from "lucide-react";
+import { auth } from "@/lib/auth";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import CreateCollectionButton from "./create-collection-button";
+import Logout from "./logout";
+import Link from "next/link";
+import CreateOrganizationButton from "./create-organization-button";
+import { getOrganizationCollection } from "@/actions/collection";
+import RequestTabs from "./request-tabs";
 
-const Header = () => {
+const Header = async () => {
+  const session = await auth();
+  const email = session?.user?.email;
+
+  const response = await getOrganizationCollection();
+  const collection = response?.at(0);
+
+  const organizationName = email?.substring(
+    email?.lastIndexOf("@") + 1,
+    email?.lastIndexOf("."),
+  );
+
   return (
-    <header className="flex h-14 lg:h-[60px] items-center gap-4 border-b bg-gray-100/40 px-6 dark:bg-gray-800/40">
+    <header className="flex justify-between h-14 lg:h-[60px] items-center gap-4 border-b bg-gray-100/40 px-6 dark:bg-gray-800/40">
       <Button className="lg:hidden" variant="ghost">
         <MenuIcon className="h-6 w-6" />
         <span className="sr-only">Toggle sidebar</span>
       </Button>
-      <div className="w-full flex-1">
-        <form>
-          <div className="relative">
-            {/* <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" /> */}
-            <Input
-              className="w-full bg-white shadow-none appearance-none pl-8 md:w-2/3 lg:w-1/3 dark:bg-gray-950"
-              placeholder="Search endpoints..."
-              type="search"
-            />
-          </div>
-        </form>
+      <div className="w-[209.5px] flex">
+        <div className="relative flex-1">
+          <SearchIcon className="absolute left-2.5 top-3 h-4 w-4 text-gray-500 dark:text-gray-400" />
+          <Input
+            className="w-full bg-white shadow-none appearance-none pl-8 dark:bg-gray-950"
+            placeholder="Search endpoints..."
+            type="search"
+          />
+        </div>
       </div>
+      <div className="flex-1 border-l flex h-full">
+        <RequestTabs />
+      </div>
+
+      <div>
+        {session?.user?.organizationId ? (
+          !collection?.id && <CreateCollectionButton />
+        ) : (
+          <CreateOrganizationButton orgName={organizationName} />
+        )}
+      </div>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -36,7 +65,11 @@ const Header = () => {
             size="icon"
             variant="ghost"
           >
-            S<span className="sr-only">Toggle user menu</span>
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={session?.user?.image as string} />
+              <AvatarFallback>{session?.user?.name?.at(0)}</AvatarFallback>
+            </Avatar>
+            <span className="sr-only">Toggle user menu</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -44,8 +77,15 @@ const Header = () => {
           <DropdownMenuSeparator />
           <DropdownMenuItem>Settings</DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
+          {session?.user?.organizationId && (
+            <DropdownMenuItem>
+              <Link href={"/organization"}>Organization</Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Logout</DropdownMenuItem>
+          <DropdownMenuItem>
+            <Logout />
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

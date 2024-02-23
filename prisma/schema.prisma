@@ -15,23 +15,28 @@ enum UserRole {
 
 model User {
   id             String        @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
+  name           String?
   email          String        @unique
+  emailVerified  DateTime?
+  image          String?
   verified       DateTime?
   password       String?
   role           UserRole      @default(USER)
   organization   Organization? @relation(fields: [organizationId], references: [id])
   organizationId String?       @db.ObjectId
-  Request        Request[]
-  Collection     Collection[]
+  requests       Request[]
+  collections    Collection[]
+  accounts       Account[]
+  sessions       Session[]
 }
 
 model Organization {
   id          String       @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
+  name        String       @unique
   description String
-  User        User[]
-  Collection  Collection[]
+  users       User[]
+  collections Collection[]
+  createdById String?      @db.ObjectId
 }
 
 model Collection {
@@ -86,4 +91,39 @@ model Request {
   folder       Folder?    @relation(fields: [folderId], references: [id])
   collectionId String     @db.ObjectId
   collection   Collection @relation(fields: [collectionId], references: [id])
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String   @id @default(auto()) @map("_id") @db.ObjectId
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
