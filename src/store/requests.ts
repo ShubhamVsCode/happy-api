@@ -1,58 +1,81 @@
 import { Request } from "@prisma/client";
 import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 
 interface RequestsState {
   requests: Request[];
   activeRequest: Request | null;
-  lastActiveRequest: Request | null;
+  requestsHistory: Request[];
   setRequests: (requests: Request[]) => void;
-  addRequest: (request: Request) => void;
+  // addRequest: (request: Request) => void;
   addUpdatedRequest: (request: Request) => void;
   closeRequest: (request: Request) => void;
   setActiveRequest: (request: Request) => void;
 }
 
-export const useRequestsStore = create<RequestsState>((set) => ({
-  requests: [],
-  activeRequest: null,
-  lastActiveRequest: null,
-  setRequests: (requests) =>
-    set({
-      requests: Array.from(new Set(requests)),
-      activeRequest: requests?.[0],
-    }),
-  addRequest: (request) =>
-    set((state) => ({
-      requests:
-        state.requests.findIndex((r) => r.id === request.id) !== -1
-          ? state.requests
-          : Array.from(new Set([...state.requests, request])),
-      activeRequest: request,
-    })),
-  addUpdatedRequest: (request) =>
-    set((state) => ({
-      requests: state.requests.map((r) => {
-        return r.id === request.id ? request : r;
-      }),
-    })),
-  closeRequest: (request) =>
-    set((state) => ({
-      requests: state.requests.filter((r) => r.id !== request.id),
-      activeRequest:
-        state.activeRequest && state.activeRequest.id === request.id
-          ? state.requests.find(
-              (r) =>
-                r.id === (state.lastActiveRequest && state.lastActiveRequest.id)
-            )
-          : state.activeRequest,
+export const useRequestsStore = create<RequestsState>()(
+  devtools((set) => ({
+    requests: [],
+    activeRequest: null,
+    requestsHistory: [],
+    setRequests: (requests) => set({ requests }),
+    // addRequest: (request) =>
+    //   set((state) => ({
+    //     requests: Array.from(new Set([...state.requests, request])),
+    //     activeRequest: request,
+    //     requestsHistory: state.activeRequest
+    //       ? [...state.requestsHistory, state.activeRequest]
+    //       : state.requestsHistory,
+    //   })),
+    addUpdatedRequest: (request) =>
+      set((state) => ({
+        requests: state.requests.map((r) =>
+          r.id === request.id ? request : r,
+        ),
+      })),
+    closeRequest: (request) =>
+      set((state) => {
+        return {
+          requests: state.requests
+            .filter((r) => r.id !== request.id)
+            .filter(Boolean),
+          activeRequest: state.requestsHistory.pop(),
+          requestsHistory: state.requestsHistory.filter(Boolean),
+        };
 
-      // state.activeRequest?.id !== request?.id
-      //   ? state.activeRequest
-      //   : state.lastActiveRequest,
-    })),
-  setActiveRequest: (request) =>
-    set((state) => ({
-      activeRequest: request,
-      lastActiveRequest: state.activeRequest,
-    })),
-}));
+        // const newRequests = state.requests.filter((r) => r.id !== request.id);
+        // const newHistory = state.requestsHistory.filter(
+        //   (r) => r.id !== request.id,
+        // );
+        // const newActiveRequest =
+        //   state.activeRequest && state.activeRequest.id === request.id
+        //     ? state.requestsHistory.length > 0
+        //       ? state.requestsHistory.pop()
+        //       : newRequests.length > 0
+        //       ? newRequests[newRequests.length - 1]
+        //       : null
+        //     : state.activeRequest;
+        // return {
+        //   requests: newRequests,
+        //   activeRequest: newActiveRequest,
+        //   requestsHistory: [
+        //     ...state.requestsHistory,
+        //     state.activeRequest,
+        //   ].filter(Boolean),
+        // };
+      }),
+    setActiveRequest: (request) =>
+      set((state) => ({
+        requests: Array.from(new Set([...state.requests, request])),
+        activeRequest: request,
+        requestsHistory: state.activeRequest
+          ? Array.from(
+              new Set([
+                ...state.requestsHistory.filter((r) => r.id !== request.id),
+                state.activeRequest,
+              ]),
+            )
+          : state.requestsHistory,
+      })),
+  })),
+);

@@ -43,12 +43,12 @@ const Requests = ({
   } | null>(null);
   const newFolderRef = useRef<HTMLInputElement>(null);
   const [allFolders, setAllFolders] = useState<FolderWithRequests[]>(
-    initialFolders || []
+    initialFolders || [],
   );
   const [allRequests, setAllRequests] = useState<Request[]>(
-    initialRequests || []
+    initialRequests || [],
   );
-  const { requests, addRequest, setRequests } = useRequestsStore();
+  const { requests, setActiveRequest, setRequests } = useRequestsStore();
 
   const handleNewFolder = async () => {
     setNewFolder(newFolderData);
@@ -88,7 +88,7 @@ const Requests = ({
 
     if (newRequest) {
       toast.success("Request Created");
-      addRequest(newRequest);
+      setActiveRequest(newRequest);
     }
   };
 

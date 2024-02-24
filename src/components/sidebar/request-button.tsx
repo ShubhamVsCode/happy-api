@@ -26,7 +26,7 @@ const methodBgColors = {
 };
 
 const RequestButton = ({ request }: { request: Request }) => {
-  const { addRequest, addUpdatedRequest } = useRequestsStore();
+  const { setActiveRequest, addUpdatedRequest } = useRequestsStore();
   const [updatedRequest, setUpdatedRequest] = useState<Request>(request);
 
   const onDoubleClick = () => {};
@@ -57,7 +57,7 @@ const RequestButton = ({ request }: { request: Request }) => {
       size={"sm"}
       variant={"ghost"}
       onClick={() => {
-        addRequest(updatedRequest ?? request);
+        setActiveRequest(updatedRequest ?? request);
       }}
       onDoubleClick={() => {}}
     >
@@ -65,7 +65,7 @@ const RequestButton = ({ request }: { request: Request }) => {
         className={cn(
           "text-[10px] rounded-sm w-10 text-center p-[2px]",
           methodColors[request.method],
-          methodBgColors[request.method]
+          methodBgColors[request.method],
         )}
       >
         {request.method}
