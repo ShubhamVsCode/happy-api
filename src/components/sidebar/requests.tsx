@@ -43,10 +43,10 @@ const Requests = ({
   } | null>(null);
   const newFolderRef = useRef<HTMLInputElement>(null);
   const [allFolders, setAllFolders] = useState<FolderWithRequests[]>(
-    initialFolders || [],
+    initialFolders || []
   );
   const [allRequests, setAllRequests] = useState<Request[]>(
-    initialRequests || [],
+    initialRequests || []
   );
   const { requests, addRequest, setRequests } = useRequestsStore();
 
@@ -112,7 +112,7 @@ const Requests = ({
       <div className="mt-2">
         <Accordion type="multiple">
           {allFolders?.map((folder) => (
-            <AccordionItem value={folder.id}>
+            <AccordionItem value={folder.id} key={folder.id}>
               <AccordionTrigger>{folder.name}</AccordionTrigger>
               <AccordionContent>
                 {folder.requests.length === 0 ? (
@@ -125,7 +125,10 @@ const Requests = ({
                   </Button>
                 ) : (
                   folder.requests?.map((req) => (
-                    <RequestButton name={req.name} method={req.method} />
+                    <RequestButton
+                      key={req.id + req.name + req.collectionId}
+                      request={req}
+                    />
                   ))
                 )}
               </AccordionContent>

@@ -76,7 +76,7 @@ const RequestSection = () => {
   }
 
   function handleBaseUrlChange(value: string): void {
-    throw new Error("Function not implemented.");
+    // throw new Error("Function not implemented.");
   }
 
   function handleUrlChange(event: ChangeEvent<HTMLInputElement>): void {

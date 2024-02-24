@@ -1,12 +1,13 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
-import { RequestMethod as Method } from "@prisma/client";
-
-interface RequestButtonProps {
-  name: string;
-  method: Method;
-}
+import { RequestMethod as Method, Request } from "@prisma/client";
+import { useRequestsStore } from "@/store/requests";
+import useEditableText from "@/hooks/useEditableText";
+import { Input } from "../ui/input";
+import { updateRequest } from "@/actions/request";
 
 const methodColors = {
   [Method.GET]: "text-green-500",
@@ -24,23 +25,64 @@ const methodBgColors = {
   [Method.DELETE]: "bg-red-100",
 };
 
-const RequestButton = (props: RequestButtonProps) => {
+const RequestButton = ({ request }: { request: Request }) => {
+  const { addRequest, addUpdatedRequest } = useRequestsStore();
+  const [updatedRequest, setUpdatedRequest] = useState<Request>(request);
+
+  const onDoubleClick = () => {};
+  const onBlur = async () => {
+    if (request.name == text) return;
+    const updatedReq = await updateRequest({ id: request.id, name: text });
+    addUpdatedRequest(updatedReq);
+    setUpdatedRequest(updatedReq);
+  };
+
+  const {
+    isEditing,
+    text,
+    textRef,
+    handleDoubleClick,
+    handleBlur,
+    handleKeyDown,
+    setText,
+  } = useEditableText({
+    initialValue: updatedRequest.name ?? request.name,
+    onDoubleClick,
+    onBlur,
+  });
+
   return (
     <Button
       className={`w-full text-left items-center justify-start grid grid-cols-[50px_1fr] pl-2`}
       size={"sm"}
       variant={"ghost"}
+      onClick={() => {
+        addRequest(updatedRequest ?? request);
+      }}
+      onDoubleClick={() => {}}
     >
       <span
         className={cn(
           "text-[10px] rounded-sm w-10 text-center p-[2px]",
-          methodColors[props.method],
-          methodBgColors[props.method],
+          methodColors[request.method],
+          methodBgColors[request.method]
         )}
       >
-        {props.method}
+        {request.method}
       </span>
-      <span className="text-sm">{props.name}</span>
+      {isEditing ? (
+        <Input
+          ref={textRef}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          autoFocus
+          variant={"sm"}
+        />
+      ) : (
+        <div onDoubleClick={handleDoubleClick}>{text}</div>
+      )}
     </Button>
   );
 };

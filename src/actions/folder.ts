@@ -22,7 +22,7 @@ export const createFolder = async ({
       requests: true,
     },
   });
-  revalidatePath("/");
 
+  revalidatePath("/");
   return folder;
 };

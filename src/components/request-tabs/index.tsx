@@ -1,16 +1,10 @@
-"use client";
-
-import { useState } from "react";
 import Tabs from "./tabs";
-import { useRequestsStore } from "@/store/requests";
 
 const RequestTabs = () => {
-  const { requests, addRequest, setRequests } = useRequestsStore();
-
   return (
-    <div className="flex w-full justify-between items-end">
+    <div className="flex w-full justify-between">
       <nav className="flex gap-4">
-        <Tabs tabs={requests} />
+        <Tabs />
       </nav>
       {/* <div className="p-4">{tabs[activeTab].content}</div> */}
     </div>

@@ -1,3 +1,4 @@
+import { XIcon } from "lucide-react";
 import React from "react";
 
 interface TabProps {
@@ -10,19 +11,17 @@ interface TabProps {
 const Tab: React.FC<TabProps> = ({ title, isActive, onClick, onClose }) => {
   return (
     <div
-      className={`p-2 cursor-pointer border-t border-l border-r rounded-t-lg ${
+      className={`pr-2 pl-4 cursor-pointer flex justify-center items-center border-r border-r-gray-200 ${
         isActive ? "bg-gray-200" : ""
       }`}
       onClick={onClick}
     >
-      {title}
-      {isActive && (
-        <span className="ml-2" onClick={(e) => e.stopPropagation()}>
-          <button className="text-red-500" onClick={onClose}>
-            &times;
-          </button>
-        </span>
-      )}
+      <p className="text-center">{title}</p>
+      <span className="ml-2 size-5 group" onClick={(e) => e.stopPropagation()}>
+        <button className="" onClick={onClose}>
+          <XIcon className="size-4 group-hover:bg-gray-300 p-0.5 rounded-full" />
+        </button>
+      </span>
     </div>
   );
 };
