@@ -6,16 +6,16 @@ const Sidebar = async () => {
   const collection = response?.at(0);
 
   return (
-    <>
+    <div>
       {collection && <p>{collection?.name}</p>}
-      <div className="mt-2">
+      <div className="mt-2 flex flex-col">
         <Requests
           collectionId={collection?.id}
           initialRequests={collection?.requests}
           initialFolders={collection?.folders}
         />
       </div>
-    </>
+    </div>
   );
 };
 

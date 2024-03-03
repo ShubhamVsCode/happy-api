@@ -17,6 +17,7 @@ import Link from "next/link";
 import CreateOrganizationButton from "./create-organization-button";
 import { getOrganizationCollection } from "@/actions/collection";
 import RequestTabs from "./request-tabs";
+import Environment from "./environment";
 
 const Header = async () => {
   const session = await auth();
@@ -52,7 +53,11 @@ const Header = async () => {
 
       <div>
         {session?.user?.organizationId ? (
-          !collection?.id && <CreateCollectionButton />
+          !collection?.id ? (
+            <CreateCollectionButton />
+          ) : (
+            <Environment />
+          )
         ) : (
           <CreateOrganizationButton orgName={organizationName} />
         )}

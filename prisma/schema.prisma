@@ -31,12 +31,37 @@ model User {
 }
 
 model Organization {
-  id          String       @id @default(auto()) @map("_id") @db.ObjectId
-  name        String       @unique
-  description String
-  users       User[]
-  collections Collection[]
-  createdById String?      @db.ObjectId
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  name         String        @unique
+  description  String
+  users        User[]
+  createdById  String?       @db.ObjectId
+  variables    Variable[]
+  environments Environment[]
+  collections  Collection[]
+}
+
+model Variable {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  value          String
+  previousValues String[]
+  environmentId  String?       @db.ObjectId
+  environment    Environment?  @relation(fields: [environmentId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?       @db.ObjectId
+  Request        Request[]
+}
+
+model Environment {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  description    String
+  variables      Variable[]
+  collection     Collection    @relation(fields: [collectionId], references: [id])
+  collectionId   String        @db.ObjectId
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?       @db.ObjectId
 }
 
 model Collection {
@@ -45,6 +70,7 @@ model Collection {
   description    String?
   folders        Folder[]
   requests       Request[]
+  environments   Environment[]
   organization   Organization? @relation(fields: [organizationId], references: [id])
   organizationId String?       @db.ObjectId
 
@@ -74,6 +100,8 @@ model Request {
   name        String        @default("New Request")
   notes       String?
   method      RequestMethod @default(GET)
+  variableId  String?       @db.ObjectId
+  variable    Variable?     @relation(fields: [variableId], references: [id])
   url         String        @default("")
   headers     Json?
   body        Json?

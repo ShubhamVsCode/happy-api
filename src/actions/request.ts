@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { Request } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 export const createNewRequest = async ({
@@ -24,20 +25,24 @@ export const createNewRequest = async ({
   return request;
 };
 
-export const updateRequest = async ({
-  id,
-  name,
-}: {
-  id: string;
-  name: string;
-}) => {
+export const updateRequest = async (data: Request) => {
+  const id = data.id;
+  delete data.id;
+
   const request = await prisma.request.update({
     where: {
       id,
     },
-    data: {
-      name,
-    },
+    data,
+  });
+
+  revalidatePath("/");
+  return request;
+};
+
+export const deleteRequest = async (id: string) => {
+  const request = await prisma.request.delete({
+    where: { id },
   });
 
   revalidatePath("/");

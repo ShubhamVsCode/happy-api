@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+import { Folder, Request } from "@prisma/client";
+
 import {
   Accordion,
   AccordionItem,
@@ -7,15 +10,28 @@ import {
   AccordionContent,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import RequestButton from "./request-button";
-import { PlusIcon } from "lucide-react";
-import { Folder, Request } from "@prisma/client";
-import { useEffect, useRef, useState } from "react";
-import { createFolder } from "@/actions/folder";
-import { Input } from "../ui/input";
+import { MoreVertical, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
+
+import { createFolder, deleteFolder } from "@/actions/folder";
 import { createNewRequest } from "@/actions/request";
-import { useRequestsStore } from "@/store/requests";
+import { useFolderStore, useRequestsStore } from "@/store";
+import { ScrollArea, ScrollBar } from "../ui/scroll-area";
 
 type FolderWithRequests = Folder & {
   requests: Request[];
@@ -48,7 +64,8 @@ const Requests = ({
   const [allRequests, setAllRequests] = useState<Request[]>(
     initialRequests || [],
   );
-  const { requests, setActiveRequest, setRequests } = useRequestsStore();
+  const { activeRequest, setActiveRequest } = useRequestsStore();
+  const { openedFolders, setOpenedFolders } = useFolderStore();
 
   const handleNewFolder = async () => {
     setNewFolder(newFolderData);
@@ -92,6 +109,16 @@ const Requests = ({
     }
   };
 
+  const handleFolderDelete = async (folderId: string) => {
+    try {
+      await deleteFolder(folderId);
+      toast.success("Folder deleted!");
+    } catch (error) {
+      console.log("error in deleting folder", error);
+      toast.error("Folder not able to delete");
+    }
+  };
+
   return (
     <>
       <Button
@@ -104,111 +131,140 @@ const Requests = ({
         New Folder
       </Button>
 
-      {/* <pre>
-        {JSON.stringify(initialFolders, null, 2)}
-        {JSON.stringify(initialRequests, null, 2)}
-      </pre> */}
+      <pre>
+        {/* {JSON.stringify(initialFolders, null, 2)}
+        {JSON.stringify(initialRequests, null, 2)} */}
+      </pre>
 
-      <div className="mt-2">
-        <Accordion type="multiple">
-          {allFolders?.map((folder) => (
-            <AccordionItem value={folder.id} key={folder.id}>
-              <AccordionTrigger>{folder.name}</AccordionTrigger>
-              <AccordionContent>
-                {folder.requests.length === 0 ? (
+      <ScrollArea className="h-[600px] mt-2">
+        <ScrollBar orientation="vertical" />
+        <div className="">
+          <Accordion
+            type="multiple"
+            onValueChange={(value) => setOpenedFolders(value)}
+            value={
+              activeRequest && activeRequest?.folderId
+                ? openedFolders.includes(activeRequest.folderId)
+                  ? openedFolders
+                  : [...openedFolders, activeRequest.folderId]
+                : openedFolders
+            }
+          >
+            {initialFolders?.map((folder) => (
+              <AccordionItem value={folder.id} key={folder.id}>
+                <ContextMenu>
+                  <ContextMenuContent>
+                    {/* <ContextMenuItem>Save</ContextMenuItem> */}
+                    {/* <ContextMenuItem>Rename</ContextMenuItem> */}
+                    <ContextMenuItem>Rename Folder</ContextMenuItem>
+                    <ContextMenuItem
+                      onClick={() => handleFolderDelete(folder.id)}
+                    >
+                      Delete
+                    </ContextMenuItem>
+                  </ContextMenuContent>
+                  <ContextMenuTrigger>
+                    <AccordionTrigger className="group w-full">
+                      <span className="truncate">{folder.name}</span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="ml-auto mr-1">
+                          <MoreVertical className="hidden group-hover:block h-4 w-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem
+                            onClick={() => handleNewRequest(folder.id)}
+                          >
+                            Add Request
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {folder.requests.length === 0 ? (
+                        <Button
+                          onClick={() => handleNewRequest(folder.id)}
+                          className="w-full mt-1 text-sm py-1"
+                          variant={"ghost"}
+                        >
+                          <PlusIcon className="mr-2 h-4 w-4" /> Add new request
+                        </Button>
+                      ) : (
+                        <>
+                          {folder.requests?.map((req) => (
+                            <RequestButton
+                              key={req.id + req.name + req.collectionId}
+                              request={req}
+                            />
+                          ))}
+                          <Button
+                            onClick={() => handleNewRequest(folder.id)}
+                            className="w-full text-sm"
+                            size={"sm"}
+                            variant={"ghost"}
+                          >
+                            <PlusIcon className="mr-2 h-4 w-4" /> Add new
+                            request
+                          </Button>
+                        </>
+                      )}
+                    </AccordionContent>
+                  </ContextMenuTrigger>
+                </ContextMenu>
+              </AccordionItem>
+            ))}
+          </Accordion>
+
+          {newFolder && (
+            <Accordion type="single" collapsible>
+              <AccordionItem value={newFolder.name}>
+                <AccordionTrigger
+                  data-state={editingFolder && "open"}
+                  onClick={(e) => {
+                    editingFolder && e.preventDefault();
+                  }}
+                  onDoubleClick={() => setEditingFolder(true)}
+                >
+                  {editingFolder ? (
+                    <Input
+                      ref={newFolderRef}
+                      type="text"
+                      variant={"sm"}
+                      value={newFolder.name}
+                      disabled={newFolderCreating}
+                      onKeyDown={async (e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleFolderCreate();
+                        }
+                      }}
+                      onChange={(e) => {
+                        setNewFolder((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }));
+                      }}
+                      onBlur={() => {
+                        handleFolderCreate();
+                      }}
+                    />
+                  ) : (
+                    newFolder.name
+                  )}
+                </AccordionTrigger>
+                <AccordionContent className="grid place-content-center h-20">
                   <Button
-                    onClick={() => handleNewRequest(folder.id)}
+                    // onClick={() => handleNewRequest(folder.id)}
                     className="text-blue-700 w-full"
                     variant={"link"}
                   >
                     Add new request
                   </Button>
-                ) : (
-                  folder.requests?.map((req) => (
-                    <RequestButton
-                      key={req.id + req.name + req.collectionId}
-                      request={req}
-                    />
-                  ))
-                )}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-
-        {newFolder && (
-          <Accordion type="single" collapsible>
-            <AccordionItem value={newFolder.name}>
-              <AccordionTrigger
-                data-state={editingFolder && "open"}
-                onClick={(e) => {
-                  editingFolder && e.preventDefault();
-                }}
-                onDoubleClick={() => setEditingFolder(true)}
-              >
-                {editingFolder ? (
-                  <Input
-                    ref={newFolderRef}
-                    type="text"
-                    variant={"sm"}
-                    value={newFolder.name}
-                    disabled={newFolderCreating}
-                    onKeyDown={async (e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleFolderCreate();
-                      }
-                    }}
-                    onChange={(e) => {
-                      setNewFolder((prev) => ({
-                        ...prev,
-                        name: e.target.value,
-                      }));
-                    }}
-                    onBlur={() => {
-                      handleFolderCreate();
-                    }}
-                  />
-                ) : (
-                  newFolder.name
-                )}
-              </AccordionTrigger>
-              <AccordionContent className="grid place-content-center h-20">
-                <Button
-                  // onClick={() => handleNewRequest(folder.id)}
-                  className="text-blue-700 w-full"
-                  variant={"link"}
-                >
-                  Add new request
-                </Button>
-              </AccordionContent>
-
-              {/* <AccordionContent>
-                <RequestButton name="Login" method={Method.POST} />
-                <RequestButton name="Register" method={Method.POST} />
-                <RequestButton name="Get User" method={Method.GET} />
-                <RequestButton name="Delete User" method={Method.DELETE} />
-                <RequestButton name="Update User" method={Method.PUT} />
-                <RequestButton name="Update User By Id" method={Method.PATCH} />
-              </AccordionContent> */}
-            </AccordionItem>
-          </Accordion>
-        )}
-
-        {/* <Accordion type="single" collapsible>
-          <AccordionItem value="auth">
-            <AccordionTrigger>Auth</AccordionTrigger>
-            <AccordionContent>
-              <RequestButton name="Login" method={Method.POST} />
-              <RequestButton name="Register" method={Method.POST} />
-              <RequestButton name="Get User" method={Method.GET} />
-              <RequestButton name="Delete User" method={Method.DELETE} />
-              <RequestButton name="Update User" method={Method.PUT} />
-              <RequestButton name="Update User By Id" method={Method.PATCH} />
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion> */}
-      </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          )}
+        </div>
+      </ScrollArea>
     </>
   );
 };

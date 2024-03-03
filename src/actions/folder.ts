@@ -26,3 +26,12 @@ export const createFolder = async ({
   revalidatePath("/");
   return folder;
 };
+
+export const deleteFolder = async (id: string) => {
+  const folder = await prisma.folder.delete({
+    where: { id },
+  });
+
+  revalidatePath("/");
+  return folder;
+};
