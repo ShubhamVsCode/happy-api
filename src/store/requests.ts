@@ -123,25 +123,25 @@ export const useRequestsStore = create<RequestsState>()(
 
 // startDevtools();
 
-function startDevtools() {
-  const connection = window?.__REDUX_DEVTOOLS_EXTENSION__?.connect({
-    name: "Form fields",
-  });
-  connection?.init(useRequestsStore.getState());
+// function startDevtools() {
+//   const connection = window?.__REDUX_DEVTOOLS_EXTENSION__?.connect({
+//     name: "Form fields",
+//   });
+//   connection?.init(useRequestsStore.getState());
 
-  let isUpdateFromDevtools = false;
-  connection?.subscribe((evt: any) => {
-    if (evt.type === "DISPATCH") {
-      const newState = JSON.parse(evt.state);
-      isUpdateFromDevtools = true;
-      useRequestsStore.setState(newState);
-      isUpdateFromDevtools = false;
-    }
-  });
+//   let isUpdateFromDevtools = false;
+//   connection?.subscribe((evt: any) => {
+//     if (evt.type === "DISPATCH") {
+//       const newState = JSON.parse(evt.state);
+//       isUpdateFromDevtools = true;
+//       useRequestsStore.setState(newState);
+//       isUpdateFromDevtools = false;
+//     }
+//   });
 
-  useRequestsStore.subscribe((newState) => {
-    if (!isUpdateFromDevtools) {
-      connection?.send("State", newState);
-    }
-  });
-}
+//   useRequestsStore.subscribe((newState) => {
+//     if (!isUpdateFromDevtools) {
+//       connection?.send("State", newState);
+//     }
+//   });
+// }

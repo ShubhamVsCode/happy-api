@@ -13,6 +13,7 @@ export const createVariable = async (data: Omit<Variable, "id">) => {
 
 export const updateVariable = async (data: Variable) => {
   const id = data.id;
+  // @ts-ignore
   delete data.id;
 
   const variable = await prisma.variable.update({

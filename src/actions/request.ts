@@ -27,6 +27,7 @@ export const createNewRequest = async ({
 
 export const updateRequest = async (data: Request) => {
   const id = data.id;
+  // @ts-ignore
   delete data.id;
 
   const request = await prisma.request.update({
