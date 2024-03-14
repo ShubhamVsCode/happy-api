@@ -317,9 +317,9 @@ const RequestSection = () => {
           <Tabs defaultValue="body" className="">
             <TabsList>
               <TabsTrigger value="body">Body</TabsTrigger>
-              <TabsTrigger value="headers">Headers</TabsTrigger>
-              <TabsTrigger value="auth">Auth</TabsTrigger>
-              <TabsTrigger value="params">Params</TabsTrigger>
+              <TabsTrigger disabled value="headers">Headers</TabsTrigger>
+              <TabsTrigger disabled value="auth">Auth</TabsTrigger>
+              <TabsTrigger disabled value="params">Params</TabsTrigger>
             </TabsList>
 
             <TabsContent value="body">
@@ -345,7 +345,7 @@ const RequestSection = () => {
             <div className="flex justify-between items-center">
               <TabsList>
                 <TabsTrigger value="response-body">Response</TabsTrigger>
-                <TabsTrigger value="response-headers">
+                <TabsTrigger disabled value="response-headers">
                   Response Headers
                 </TabsTrigger>
               </TabsList>
